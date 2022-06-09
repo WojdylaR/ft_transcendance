@@ -5,19 +5,19 @@ function Chat({src} : any) {
     let [chat, chatState] = useState("Bienvenue sur le chat")
     let [value, chatValue] = useState("Bienvenue sur le chat")
     return (
-		<div>
+		<div style={{whiteSpace:"pre-line"}}>
 			{chat}
         	<ChatStyle>
 				<input
-                    onChange={(e) => chatValue(value = e.target.value + '\n')}
+                    onChange={(e) => chatValue(e.target.value)}
                     onKeyPress={(e) => {
                                         if(e.key === 'Enter' )
                                         {
-                                            chatState(chat = chat + '\n' + value)
+                                            chatState(chat + '\n' + value)
                                         }
                     }}
                     placeholder="entrez votre message"></input>
-                    <button onClick={(e) => chatState(chat = chat + '\n' + value)}>
+                    <button onClick={(e) => chatState(chat + '\n' + value)}>
                         Envoyer
                     </button>
         	</ChatStyle>
