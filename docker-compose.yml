@@ -1,10 +1,92 @@
 version: '3.3'
 
 services:
-  front:
-    container_name: front
+  backend:
+    container_name: backend
+    restart: always
     build:
-      context: ./front
+      context: ./srcs/backend
+    links:
+      - "postgres"
+    volumes:
+      - node_back:/usr/src/app/node_modules
     ports:
       - 3000:3000
+      - 9229:9229
     command: npm run start
+    env_file:
+      - ./srcs/env
+    environment:
+      - POSTGRES=postgres
+      - NODE_ENV=production
+    networks:
+      - pingpong
+    depends_on:
+      - postgres
+
+  phppgadmin:
+    container_name: phppgadmin
+    image: neimheadh/phppgadmin:7.13.0
+    restart: always
+    ports:
+      - 8000:80
+    links:
+      - "postgres"
+    env_file:
+      - ./srcs/env
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=root
+      - POSTGRES_PASS=password
+    networks: 
+      - pingpong
+    depends_on:
+      - postgres
+
+  postgres:
+    container_name: postgres
+    image: postgres:12
+    restart: always
+    networks:
+      - pingpong
+    environment:
+      POSTGRES_PASSWORD: password
+      PGPASSWORD: password
+      POSTGRES_USER: root
+      POSTGRES_DB: ft_transcendence
+      PG_DATA: /var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_db:/var/lib/postgresql/data
+
+  frontend:
+    container_name: frontend
+    restart: always
+    build:
+      context: ./srcs/frontend
+    volumes:
+      - node_front:/usr/src/app/node_modules
+    ports:
+      - 8080:8080
+      - 9228:9228
+    environment:
+    # When set to true, the watcher runs in polling mode, as necessary inside a VM. 
+    # Use this option if npm start isn't detecting changes. (see https://create-react-app.dev/docs/advanced-configuration/)
+      - CHOKIDAR_USEPOLLING=true
+    # The production environment would use a separate set of DB credentials. 
+    # Since configuration variables change, best practice is to store configuration variables in the environment.
+      - NODE_ENV=production
+    command: npm run start
+    networks:
+      - pingpong
+    depends_on:
+      - backend
+
+networks:
+  pingpong:
+volumes:
+  postgres_db:
+  node_back:
+  node_front:
